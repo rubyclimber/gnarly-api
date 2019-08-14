@@ -22,6 +22,7 @@ import java.util.Collections;
 import static com.ohgnarly.gnarlyapi.constant.GnarlyConstants.*;
 import static java.lang.Integer.parseInt;
 import static java.lang.System.getenv;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -29,6 +30,17 @@ import static org.springframework.util.StringUtils.isEmpty;
 @Configuration
 @ComponentScan
 public class BeanConfiguration {
+    @Bean
+    public GnarlyProperties gnarlyProperties(ApplicationProperties applicationProperties) {
+        String socketUrl = isNotEmpty(getenv(SOCKET_URL))
+                ? getenv(SOCKET_URL)
+                : applicationProperties.getSocketUrl();
+
+        GnarlyProperties gnarlyProperties = new GnarlyProperties();
+        gnarlyProperties.setSocketUrl(socketUrl);
+        return gnarlyProperties;
+    }
+
     @Bean
     public MongoClientSettings mongoClientSettings(ApplicationProperties applicationProperties) {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),

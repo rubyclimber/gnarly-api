@@ -1,5 +1,6 @@
 package com.ohgnarly.gnarlyapi.controller;
 
+import com.ohgnarly.gnarlyapi.configuration.GnarlyProperties;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
 import com.ohgnarly.gnarlyapi.repository.UserRepository;
@@ -21,9 +22,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 public class UserController {
     private UserRepository userRepository;
+    private GnarlyProperties gnarlyProperties;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, GnarlyProperties gnarlyProperties) {
         this.userRepository = userRepository;
+        this.gnarlyProperties = gnarlyProperties;
     }
 
     @PostMapping(value = "/login", consumes = APPLICATION_JSON_VALUE)
@@ -41,6 +44,7 @@ public class UserController {
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setUser(user);
         loginResponse.setSuccess(true);
+        loginResponse.setSocketUrl(gnarlyProperties.getSocketUrl());
         return new ResponseEntity<>(loginResponse, OK);
     }
 

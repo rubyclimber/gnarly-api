@@ -10,4 +10,5 @@ public class GnarlyConstants {
     public static final String DATABASE_HOST = "DATABASE_HOST";
     public static final String DATABASE_PORT = "DATABASE_PORT";
     public static final String DATABASE_PASSWORD = "DATABASE_PASSWORD";
+    public static final String SOCKET_URL = "SOCKET_URL";
 }

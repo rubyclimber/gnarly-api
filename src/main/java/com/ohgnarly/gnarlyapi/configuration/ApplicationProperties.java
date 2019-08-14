@@ -11,6 +11,7 @@ public class ApplicationProperties {
     private int databasePort;
     private String databaseUser;
     private String databasePassword;
+    private String socketUrl;
 
     public String getDatabaseName() {
         return databaseName;
@@ -50,5 +51,13 @@ public class ApplicationProperties {
 
     public void setDatabasePassword(String databasePassword) {
         this.databasePassword = databasePassword;
+    }
+
+    public String getSocketUrl() {
+        return socketUrl;
+    }
+
+    public void setSocketUrl(String socketUrl) {
+        this.socketUrl = socketUrl;
     }
 }

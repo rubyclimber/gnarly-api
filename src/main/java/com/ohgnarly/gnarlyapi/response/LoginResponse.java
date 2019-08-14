@@ -5,7 +5,7 @@ import com.ohgnarly.gnarlyapi.model.User;
 public class LoginResponse {
     private boolean success;
     private User user;
-    private String socketUrl = "http://localhost:1966/websocket";
+    private String socketUrl;
 
     public boolean isSuccess() {
         return success;
