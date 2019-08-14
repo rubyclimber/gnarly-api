@@ -3,6 +3,7 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.ohgnarly.gnarlyapi.comparator.MessageComparator;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Message;
 import com.ohgnarly.gnarlyapi.repository.MessageRepository;
@@ -85,6 +86,7 @@ public class MessageRepositoryImpl implements MessageRepository {
         for (Message message : findIterable) {
             messages.add(message);
         }
+        messages.sort(new MessageComparator());
         return messages;
     }
 }
