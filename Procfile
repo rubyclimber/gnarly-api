@@ -1,0 +1,1 @@
+web: java -jar target/gnarly-api-1.0.0-SNAPSHOT.war
