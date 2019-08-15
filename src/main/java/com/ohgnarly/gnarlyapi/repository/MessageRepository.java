@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface MessageRepository {
-    List<Message> getMessages() throws GnarlyException;
+    List<Message> getMessages(int pageNumber) throws GnarlyException;
 
     Message addMessage(Message message) throws GnarlyException;
 

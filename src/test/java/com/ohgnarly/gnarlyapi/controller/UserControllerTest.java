@@ -1,5 +1,6 @@
 package com.ohgnarly.gnarlyapi.controller;
 
+import com.ohgnarly.gnarlyapi.configuration.GnarlyProperties;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.repository.UserRepository;
 import com.ohgnarly.gnarlyapi.model.User;
@@ -32,6 +33,9 @@ public class UserControllerTest {
 
     @Mock
     private UserRepository mockUserRepository;
+
+    @Mock
+    private GnarlyProperties mockGnarlyProperties;
 
     @Test
     public void testLogin() throws Throwable {

@@ -4,6 +4,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.ohgnarly.gnarlyapi.consumer.MessageConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Message;
 import org.bson.conversions.Bson;
@@ -14,8 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,20 +36,21 @@ public class MessageRepositoryImplTest {
     private FindIterable<Message> mockFindIterable;
 
     @Mock
-    private MongoCursor<Message> mockMongoCursor;
+    private MessageConsumer mockMessageConsumer;
 
     @Test
     public void getMessages() throws Throwable {
         //arrange
         Message message = new Message();
 
-        when(mockMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockMongoCursor.next()).thenReturn(message);
-        when(mockFindIterable.iterator()).thenReturn(mockMongoCursor);
+        when(mockFindIterable.sort(any(Bson.class))).thenReturn(mockFindIterable);
+        when(mockFindIterable.skip(anyInt())).thenReturn(mockFindIterable);
+        when(mockFindIterable.limit(anyInt())).thenReturn(mockFindIterable);
         when(mockMessageCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
+        when(mockMessageConsumer.getMessages()).thenReturn(singletonList(message));
 
         //act
-        List<Message> messages = messageRepository.getMessages();
+        List<Message> messages = messageRepository.getMessages(0);
 
         //assert
         assertNotNull(messages);
@@ -62,7 +66,7 @@ public class MessageRepositoryImplTest {
         when(mockMessageCollection.find(any(Bson.class))).thenThrow(MongoException.class);
 
         //act
-        messageRepository.getMessages();
+        messageRepository.getMessages(0);
     }
 
     @Test
@@ -97,10 +101,8 @@ public class MessageRepositoryImplTest {
         //arrange
         Message message = new Message();
 
-        when(mockMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockMongoCursor.next()).thenReturn(message);
-        when(mockFindIterable.iterator()).thenReturn(mockMongoCursor);
         when(mockMessageCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
+        when(mockMessageConsumer.getMessages()).thenReturn(singletonList(message));
 
         //act
         List<Message> messages = messageRepository.searchMessages(null, LocalDate.now().minusDays(4));
@@ -116,10 +118,8 @@ public class MessageRepositoryImplTest {
         //arrange
         Message message = new Message();
 
-        when(mockMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockMongoCursor.next()).thenReturn(message);
-        when(mockFindIterable.iterator()).thenReturn(mockMongoCursor);
         when(mockMessageCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
+        when(mockMessageConsumer.getMessages()).thenReturn(singletonList(message));
 
         //act
         List<Message> messages = messageRepository.searchMessages("hello", null);

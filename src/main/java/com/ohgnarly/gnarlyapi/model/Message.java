@@ -7,6 +7,7 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 public class Message {
@@ -17,7 +18,7 @@ public class Message {
     @BsonProperty
     private String userId;
     @BsonProperty
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @JsonIgnore
     public ObjectId getId() {
@@ -45,11 +46,11 @@ public class Message {
         this.userId = userId;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

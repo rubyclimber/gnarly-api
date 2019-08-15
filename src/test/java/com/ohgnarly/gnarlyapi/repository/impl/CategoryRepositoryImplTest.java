@@ -4,6 +4,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.ohgnarly.gnarlyapi.consumer.CategoryConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Category;
 import org.junit.Test;
@@ -12,8 +13,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -30,17 +33,15 @@ public class CategoryRepositoryImplTest {
     private FindIterable<Category> mockFindIterable;
 
     @Mock
-    private MongoCursor<Category> mockMongoCursor;
+    private CategoryConsumer mockCategoryConsumer;
 
     @Test
     public void getCategories() throws Throwable {
         //arrange
         Category category = new Category();
 
-        when(mockMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockMongoCursor.next()).thenReturn(category);
-        when(mockFindIterable.iterator()).thenReturn(mockMongoCursor);
         when(mockCategoryCollection.find()).thenReturn(mockFindIterable);
+        when(mockCategoryConsumer.getCategories()).thenReturn(singletonList(category));
 
         //act
         List<Category> categories = categoryRepository.getCategories();

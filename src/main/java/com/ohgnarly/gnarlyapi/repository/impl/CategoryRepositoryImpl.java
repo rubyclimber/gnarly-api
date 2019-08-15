@@ -3,6 +3,8 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.ohgnarly.gnarlyapi.consumer.CategoryConsumer;
+import com.ohgnarly.gnarlyapi.controller.CategoryController;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Category;
 import com.ohgnarly.gnarlyapi.repository.CategoryRepository;
@@ -15,21 +17,20 @@ import java.util.List;
 @Repository
 public class CategoryRepositoryImpl implements CategoryRepository {
     private MongoCollection<Category> categoryCollection;
+    private CategoryConsumer categoryConsumer;
 
     @Autowired
-    public CategoryRepositoryImpl(MongoCollection<Category> categoryCollection) {
+    public CategoryRepositoryImpl(MongoCollection<Category> categoryCollection, CategoryConsumer categoryConsumer) {
         this.categoryCollection = categoryCollection;
+        this.categoryConsumer = categoryConsumer;
     }
 
     @Override
     public List<Category> getCategories() throws GnarlyException {
         try {
-            List<Category> categories = new ArrayList<>();
-            FindIterable<Category> findIterable = categoryCollection.find();
-            for (Category category : findIterable) {
-                categories.add(category);
-            }
-            return categories;
+            categoryConsumer.clear();
+            categoryCollection.find().forEach(categoryConsumer);
+            return categoryConsumer.getCategories();
         } catch (MongoException ex) {
             throw new GnarlyException("Error getting categories", ex);
         }

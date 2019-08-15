@@ -3,6 +3,7 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
 import com.ohgnarly.gnarlyapi.repository.UserRepository;
@@ -22,12 +23,14 @@ public class UserRepositoryImpl implements UserRepository {
     private MongoCollection<User> userCollection;
     private MongoCollection<User> chatUserCollection;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private UserConsumer userConsumer;
 
     public UserRepositoryImpl(MongoCollection<User> userCollection, MongoCollection<User> chatUserCollection,
-                              BCryptPasswordEncoder bCryptPasswordEncoder) {
+                              BCryptPasswordEncoder bCryptPasswordEncoder, UserConsumer userConsumer) {
         this.userCollection = userCollection;
         this.chatUserCollection = chatUserCollection;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userConsumer = userConsumer;
     }
 
     @Override
@@ -45,12 +48,9 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> getUsers() throws GnarlyException {
         try {
-            List<User> users = new ArrayList<>();
-            FindIterable<User> userFindIterable = userCollection.find();
-            for (User user : userFindIterable) {
-                users.add(user);
-            }
-            return users;
+            userConsumer.clear();
+            userCollection.find().forEach(userConsumer);
+            return userConsumer.getUsers();
         } catch (MongoException ex) {
             throw new GnarlyException(ex);
         }

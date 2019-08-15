@@ -4,6 +4,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
 import org.bson.conversions.Bson;
@@ -15,8 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -32,7 +35,7 @@ public class UserRepositoryImplTest {
     private FindIterable<User> mockFindIterable;
 
     @Mock
-    private MongoCursor<User> mockMongoCursor;
+    private UserConsumer mockUserConsumer;
 
     @Mock
     private BCryptPasswordEncoder mockBCryptPasswordEncoder;
@@ -81,10 +84,8 @@ public class UserRepositoryImplTest {
         //arrange
         User user = new User();
 
-        when(mockMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(mockMongoCursor.next()).thenReturn(user);
-        when(mockFindIterable.iterator()).thenReturn(mockMongoCursor);
         when(mockUserCollection.find()).thenReturn(mockFindIterable);
+        when(mockUserConsumer.getUsers()).thenReturn(singletonList(user));
 
         //act
         List<User> users = userRepository.getUsers();
@@ -99,8 +100,6 @@ public class UserRepositoryImplTest {
     public void getUsers_GivenMongoException() throws Throwable {
         //arrange
         User user = new User();
-
-        MongoCursor cursor = mock(MongoCursor.class);
 
         when(mockUserCollection.find()).thenThrow(MongoException.class);
 

@@ -9,13 +9,11 @@ import com.ohgnarly.gnarlyapi.response.MessageResponse;
 import com.ohgnarly.gnarlyapi.response.MessagesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static java.util.Objects.isNull;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -29,8 +27,9 @@ public class MessageController {
     }
 
     @GetMapping(value = "/messages")
-    public ResponseEntity<MessagesResponse> getMessages() throws GnarlyException {
-        List<Message> messages = messageRepository.getMessages();
+    public ResponseEntity<MessagesResponse> getMessages(@RequestParam(required = false) Integer pageNumber) throws GnarlyException {
+        pageNumber = isNull(pageNumber) ? 0 : pageNumber;
+        List<Message> messages = messageRepository.getMessages(pageNumber);
         MessagesResponse messagesResponse = new MessagesResponse();
         messagesResponse.setMessages(messages);
         return new ResponseEntity<>(messagesResponse, OK);

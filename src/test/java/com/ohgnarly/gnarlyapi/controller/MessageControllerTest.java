@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -33,10 +34,10 @@ public class MessageControllerTest {
         //arrange
         Message message = new Message();
 
-        when(messageRepository.getMessages()).thenReturn(singletonList(message));
+        when(messageRepository.getMessages(anyInt())).thenReturn(singletonList(message));
 
         //act
-        ResponseEntity<MessagesResponse> responseEntity = messageController.getMessages();
+        ResponseEntity<MessagesResponse> responseEntity = messageController.getMessages(1);
 
         //assert
         assertValidResponse(responseEntity);
@@ -50,10 +51,10 @@ public class MessageControllerTest {
         //arrange
         Message message = new Message();
 
-        when(messageRepository.getMessages()).thenThrow(GnarlyException.class);
+        when(messageRepository.getMessages(anyInt())).thenThrow(GnarlyException.class);
 
         //act
-        messageController.getMessages();
+        messageController.getMessages(1);
     }
 
     @Test
