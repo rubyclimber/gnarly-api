@@ -55,8 +55,6 @@ public class CategoryRepositoryImplTest {
     @Test(expected = GnarlyException.class)
     public void getCategories_GivenMongoException() throws Throwable {
         //arrange
-        Category category = new Category();
-
         when(mockCategoryCollection.find()).thenThrow(MongoException.class);
 
         //act

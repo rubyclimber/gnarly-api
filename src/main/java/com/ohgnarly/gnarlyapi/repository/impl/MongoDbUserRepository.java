@@ -1,7 +1,6 @@
 package com.ohgnarly.gnarlyapi.repository.impl;
 
 import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
@@ -12,21 +11,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
 import static java.lang.String.format;
 
 @Repository
-public class UserRepositoryImpl implements UserRepository {
+public class MongoDbUserRepository implements UserRepository {
     private MongoCollection<User> userCollection;
     private MongoCollection<User> chatUserCollection;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private UserConsumer userConsumer;
 
-    public UserRepositoryImpl(MongoCollection<User> userCollection, MongoCollection<User> chatUserCollection,
-                              BCryptPasswordEncoder bCryptPasswordEncoder, UserConsumer userConsumer) {
+    public MongoDbUserRepository(MongoCollection<User> userCollection, MongoCollection<User> chatUserCollection,
+                                 BCryptPasswordEncoder bCryptPasswordEncoder, UserConsumer userConsumer) {
         this.userCollection = userCollection;
         this.chatUserCollection = chatUserCollection;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;

@@ -3,7 +3,6 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
@@ -16,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -24,9 +22,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UserRepositoryImplTest {
+public class MongoDbUserRepositoryTest {
+    private User user;
     @InjectMocks
-    private UserRepositoryImpl userRepository;
+    private MongoDbUserRepository userRepository;
 
     @Mock
     private MongoCollection<User> mockUserCollection;
@@ -41,39 +40,29 @@ public class UserRepositoryImplTest {
     private BCryptPasswordEncoder mockBCryptPasswordEncoder;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        user = new User();
+        user.setUserName("user name");
+        user.setFirstName("firstName");
+        user.setLastName("lastName");
+        user.setEmailAddress("test@test.com");
+        user.setPassword("password");
+
+        when(mockUserCollection.find()).thenReturn(mockFindIterable);
+        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
+        when(mockFindIterable.first()).thenReturn(user);
     }
 
     @Test
     public void addUser() throws Throwable {
-        User user = new User();
-        user.setUserName("user name");
-        user.setFirstName("firstName");
-        user.setLastName("lastName");
-        user.setEmailAddress("test@test.com");
-        user.setPassword("password");
-
         User addedUser = userRepository.addUser(user);
 
         verify(mockUserCollection, atLeastOnce()).insertOne(user);
-        assertNotNull(addedUser.getId());
-        assertNotNull(addedUser.getCreatedAt());
-        assertEquals(user.getFirstName(), addedUser.getFirstName());
-        assertEquals(user.getLastName(), addedUser.getLastName());
-        assertEquals(user.getEmailAddress(), addedUser.getEmailAddress());
-        assertEquals(user.getUserName(), addedUser.getUserName());
-        assertEquals(user.getUserName(), addedUser.getUserName());
+        assertEquals(user, addedUser);
     }
 
     @Test(expected = GnarlyException.class)
     public void addUser_GivenMongoException() throws Throwable {
-        User user = new User();
-        user.setUserName("user name");
-        user.setFirstName("firstName");
-        user.setLastName("lastName");
-        user.setEmailAddress("test@test.com");
-        user.setPassword("password");
-
         doThrow(MongoException.class).when(mockUserCollection).insertOne(user);
 
         userRepository.addUser(user);
@@ -82,9 +71,6 @@ public class UserRepositoryImplTest {
     @Test
     public void getUsers() throws Throwable {
         //arrange
-        User user = new User();
-
-        when(mockUserCollection.find()).thenReturn(mockFindIterable);
         when(mockUserConsumer.getUsers()).thenReturn(singletonList(user));
 
         //act
@@ -99,8 +85,6 @@ public class UserRepositoryImplTest {
     @Test(expected = GnarlyException.class)
     public void getUsers_GivenMongoException() throws Throwable {
         //arrange
-        User user = new User();
-
         when(mockUserCollection.find()).thenThrow(MongoException.class);
 
         //act
@@ -111,10 +95,6 @@ public class UserRepositoryImplTest {
     public void getUser() throws Throwable {
         //arrange
         String userId = "58cb3dd6692c796b68ff33ec";
-        User user = new User();
-
-        when(mockFindIterable.first()).thenReturn(user);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         User actualUser = userRepository.getUser(userId);
@@ -128,7 +108,6 @@ public class UserRepositoryImplTest {
     public void getUser_GivenMongoException() throws Throwable {
         //arrange
         String userId = "58cb3dd6692c796b68ff33ec";
-        User user = new User();
 
         when(mockUserCollection.find(any(Bson.class))).thenThrow(MongoException.class);
 
@@ -142,7 +121,6 @@ public class UserRepositoryImplTest {
         String emailAddr = "test@test.com";
 
         when(mockFindIterable.first()).thenReturn(null);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         boolean result = userRepository.doesEmailExist(emailAddr);
@@ -168,7 +146,6 @@ public class UserRepositoryImplTest {
         String emailAddr = "test@test.com";
 
         when(mockFindIterable.first()).thenReturn(new User());
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         boolean result = userRepository.doesEmailExist(emailAddr);
@@ -183,7 +160,6 @@ public class UserRepositoryImplTest {
         String userName = "aUserName";
 
         when(mockFindIterable.first()).thenReturn(null);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         boolean result = userRepository.doesUserNameExist(userName);
@@ -209,7 +185,6 @@ public class UserRepositoryImplTest {
         String userName = "aUserName";
 
         when(mockFindIterable.first()).thenReturn(new User());
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         boolean result = userRepository.doesUserNameExist(userName);
@@ -223,11 +198,8 @@ public class UserRepositoryImplTest {
         //arrange
         String userName = "validUserName";
         String password = "validPassword";
-        User user = new User();
-        user.setPassword("validPassword");
+        user.setPassword(password);
 
-        when(mockFindIterable.first()).thenReturn(user);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
         when(mockBCryptPasswordEncoder.matches(password, user.getPassword())).thenReturn(true);
 
         //act
@@ -245,7 +217,6 @@ public class UserRepositoryImplTest {
         String password = "validPassword";
 
         when(mockFindIterable.first()).thenReturn(null);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         userRepository.validateUserPassword(userName, password);
@@ -268,11 +239,8 @@ public class UserRepositoryImplTest {
         //arrange
         String userName = "validUserName";
         String password = "invalidPassword";
-        User user = new User();
         user.setPassword("validPassword");
 
-        when(mockFindIterable.first()).thenReturn(user);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
         when(mockBCryptPasswordEncoder.matches(password, user.getPassword())).thenReturn(false);
 
         //act
@@ -284,11 +252,8 @@ public class UserRepositoryImplTest {
         //arrange
         String userName = "validUserName";
         String password = "validPassword";
-        User user = new User();
-        user.setPassword("validPassword");
+        user.setPassword(password);
 
-        when(mockFindIterable.first()).thenReturn(user);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
         when(mockBCryptPasswordEncoder.matches(password, user.getPassword())).thenReturn(true);
 
         //act
@@ -306,7 +271,6 @@ public class UserRepositoryImplTest {
         String password = "validPassword";
 
         when(mockFindIterable.first()).thenReturn(null);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
 
         //act
         userRepository.validateChatUserPassword(userName, password);
@@ -329,11 +293,8 @@ public class UserRepositoryImplTest {
         //arrange
         String userName = "validUserName";
         String password = "invalidPassword";
-        User user = new User();
         user.setPassword("validPassword");
 
-        when(mockFindIterable.first()).thenReturn(user);
-        when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
         when(mockBCryptPasswordEncoder.matches(password, user.getPassword())).thenReturn(false);
 
         //act
