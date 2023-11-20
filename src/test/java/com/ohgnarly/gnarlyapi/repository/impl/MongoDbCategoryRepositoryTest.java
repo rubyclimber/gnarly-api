@@ -4,52 +4,50 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.ohgnarly.gnarlyapi.consumer.CategoryConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Category;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CategoryRepositoryImplTest {
+public class MongoDbCategoryRepositoryTest {
     @InjectMocks
-    private CategoryRepositoryImpl categoryRepository;
-
+    private MongoDbCategoryRepository categoryRepository;
     @Mock
     private MongoCollection<Category> mockCategoryCollection;
-
-    @Mock
+    @Spy
     private FindIterable<Category> mockFindIterable;
-
     @Mock
-    private CategoryConsumer mockCategoryConsumer;
+    private MongoCursor<Category> mockCursor;
 
     @Test
     public void getCategories() throws Throwable {
         //arrange
         Category category = new Category();
 
+        when(mockCursor.hasNext()).thenReturn(true).thenReturn(false);
+        when(mockCursor.next()).thenReturn(category);
+        when(mockFindIterable.iterator()).thenReturn(mockCursor);
         when(mockCategoryCollection.find()).thenReturn(mockFindIterable);
-        when(mockCategoryConsumer.getCategories()).thenReturn(singletonList(category));
 
         //act
-        List<Category> categories = categoryRepository.getCategories();
+        List<Category> results = categoryRepository.getCategories();
 
         //assert
-        assertNotNull(categories);
-        assertEquals(1, categories.size());
-        assertEquals(category, categories.get(0));
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals(category, results.get(0));
     }
 
     @Test(expected = GnarlyException.class)

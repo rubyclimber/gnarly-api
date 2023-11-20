@@ -11,6 +11,7 @@ import com.ohgnarly.gnarlyapi.response.AvailabilityResponse;
 import com.ohgnarly.gnarlyapi.response.LoginResponse;
 import com.ohgnarly.gnarlyapi.response.UserResponse;
 import com.ohgnarly.gnarlyapimodels.response.UsersResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,14 +21,10 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
+@RequiredArgsConstructor
 public class UserController {
-    private UserRepository userRepository;
-    private GnarlyProperties gnarlyProperties;
-
-    public UserController(UserRepository userRepository, GnarlyProperties gnarlyProperties) {
-        this.userRepository = userRepository;
-        this.gnarlyProperties = gnarlyProperties;
-    }
+    private final UserRepository userRepository;
+    private final GnarlyProperties gnarlyProperties;
 
     @PostMapping(value = "/login", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) throws GnarlyException {
@@ -53,6 +50,14 @@ public class UserController {
         List<User> users = userRepository.getUsers();
         UsersResponse usersResponse = new UsersResponse();
         usersResponse.setUsers(users);
+        return new ResponseEntity<>(usersResponse, OK);
+    }
+
+    @GetMapping("/chat-users")
+    public ResponseEntity<UsersResponse> getChatUsers() throws GnarlyException {
+        List<User> chatUsers = userRepository.getChatUsers();
+        UsersResponse usersResponse = new UsersResponse();
+        usersResponse.setUsers(chatUsers);
         return new ResponseEntity<>(usersResponse, OK);
     }
 

@@ -3,7 +3,7 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
+import com.mongodb.client.MongoCursor;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
 import org.bson.conversions.Bson;
@@ -12,12 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -26,16 +26,12 @@ public class MongoDbUserRepositoryTest {
     private User user;
     @InjectMocks
     private MongoDbUserRepository userRepository;
-
     @Mock
     private MongoCollection<User> mockUserCollection;
-
-    @Mock
+    @Spy
     private FindIterable<User> mockFindIterable;
-
     @Mock
-    private UserConsumer mockUserConsumer;
-
+    private MongoCursor<User> mockCursor;
     @Mock
     private BCryptPasswordEncoder mockBCryptPasswordEncoder;
 
@@ -51,6 +47,8 @@ public class MongoDbUserRepositoryTest {
         when(mockUserCollection.find()).thenReturn(mockFindIterable);
         when(mockUserCollection.find(any(Bson.class))).thenReturn(mockFindIterable);
         when(mockFindIterable.first()).thenReturn(user);
+        when(mockFindIterable.iterator()).thenReturn(mockCursor);
+
     }
 
     @Test
@@ -71,7 +69,9 @@ public class MongoDbUserRepositoryTest {
     @Test
     public void getUsers() throws Throwable {
         //arrange
-        when(mockUserConsumer.getUsers()).thenReturn(singletonList(user));
+        when(mockCursor.hasNext()).thenReturn(true).thenReturn(false);
+        when(mockCursor.next()).thenReturn(user).thenReturn(null);
+
 
         //act
         List<User> users = userRepository.getUsers();

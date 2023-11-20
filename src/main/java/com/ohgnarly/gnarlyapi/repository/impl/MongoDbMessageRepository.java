@@ -1,46 +1,34 @@
 package com.ohgnarly.gnarlyapi.repository.impl;
 
 import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Sorts;
-import com.ohgnarly.gnarlyapi.comparator.MessageComparator;
-import com.ohgnarly.gnarlyapi.consumer.MessageConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.Message;
 import com.ohgnarly.gnarlyapi.repository.MessageRepository;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Sorts.*;
-import static java.util.Collections.*;
+import static com.mongodb.client.model.Sorts.descending;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Repository
-public class MessageRepositoryImpl implements MessageRepository {
-    private MongoCollection<Message> messageCollection;
-    private MessageConsumer messageConsumer;
-
-    @Autowired
-    public MessageRepositoryImpl(MongoCollection<Message> messageCollection, MessageConsumer messageConsumer) {
-        this.messageCollection = messageCollection;
-        this.messageConsumer = messageConsumer;
-    }
+@RequiredArgsConstructor
+public class MongoDbMessageRepository implements MessageRepository {
+    private final MongoCollection<Message> messageCollection;
 
     @Override
     public List<Message> getMessages(int pageNumber) throws GnarlyException {
         try {
-            messageConsumer.clear();
+            List<Message> messages = new ArrayList<>();
             LocalDateTime oldestDate = LocalDateTime.now().minusDays(14);
             int pageSize = 25;
             messageCollection
@@ -48,8 +36,8 @@ public class MessageRepositoryImpl implements MessageRepository {
                     .sort(descending("createdAt"))
                     .skip(pageNumber * pageSize)
                     .limit(pageSize)
-                    .forEach(messageConsumer);
-            return messageConsumer.getMessages();
+                    .forEach((Consumer<Message>)messages::add);
+            return messages;
         } catch (MongoException ex) {
             throw new GnarlyException("Error getting default messages", ex);
         }
@@ -70,25 +58,24 @@ public class MessageRepositoryImpl implements MessageRepository {
     @Override
     public List<Message> searchMessages(String searchText, LocalDate searchDate) throws GnarlyException {
         try {
-            messageConsumer.clear();
+            List<Message> messages = new ArrayList<>();
 
             if (isNotBlank(searchText)) {
                 messageCollection
                         .find(regex("messageBody", searchText))
-                        .forEach(messageConsumer);
+                        .forEach((Consumer<Message>) messages::add);
 
-                return messageConsumer.getMessages();
+                return messages;
             }
 
             if (searchDate != null) {
                 String fieldName = "createdAt";
-                LocalDate today = searchDate;
                 LocalDate tomorrow = searchDate.plusDays(1);
                 messageCollection
-                        .find(and(gte(fieldName, today), lte(fieldName, tomorrow)))
-                        .forEach(messageConsumer);
+                        .find(and(gte(fieldName, searchDate), lte(fieldName, tomorrow)))
+                        .forEach((Consumer<? super Message>) messages::add);
 
-                return messageConsumer.getMessages();
+                return messages;
             }
 
             throw new GnarlyException("Invalid search criteria specified.");

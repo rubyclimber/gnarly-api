@@ -1,5 +1,6 @@
 package com.ohgnarly.gnarlyapi.configuration;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -46,36 +47,14 @@ public class BeanConfiguration {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
                 fromProviders(PojoCodecProvider.builder().automatic(true).register(User.class).build()));
 
-        String databaseUser = isEmpty(getenv(DATABASE_USER))
-                ? applicationProperties.getDatabaseUser()
-                : getenv(DATABASE_USER);
-
-        String databaseName = isEmpty(getenv(DATABASE_NAME))
-                ? applicationProperties.getDatabaseName()
-                : getenv(DATABASE_NAME);
-
-        String databasePassword = isEmpty(getenv(DATABASE_PASSWORD))
-                ? applicationProperties.getDatabasePassword()
-                : getenv(DATABASE_PASSWORD);
-
-        int databasePort = isEmpty(getenv(DATABASE_PORT))
-                ? applicationProperties.getDatabasePort()
-                : parseInt(getenv(DATABASE_PORT));
-
-        String databaseHost = isEmpty(getenv(DATABASE_HOST))
-                ? applicationProperties.getDatabaseHost()
-                : getenv(DATABASE_HOST);
-
-        MongoCredential mongoCredential = MongoCredential.createCredential(databaseUser, databaseName,
-                databasePassword.toCharArray());
+        ConnectionString connectionString = new ConnectionString(
+                "mongodb+srv://dbuser:OFADHEr0Kyx37VK1@cluster0.hds1u.mongodb.net/?retryWrites=true&w=majority"
+        );
 
         return MongoClientSettings
                 .builder()
                 .codecRegistry(pojoCodecRegistry)
-                .applyToClusterSettings(builder -> {
-                    builder.hosts(Collections.singletonList(new ServerAddress(databaseHost, databasePort)));
-                })
-                .credential(mongoCredential)
+                .applyConnectionString(connectionString)
                 .build();
     }
 

@@ -10,6 +10,8 @@ public interface UserRepository {
 
     List<User> getUsers() throws GnarlyException;
 
+    List<User> getChatUsers() throws GnarlyException;
+
     User getUser(String userId) throws GnarlyException;
 
     boolean doesEmailExist(String emailAddress) throws GnarlyException;

@@ -2,34 +2,28 @@ package com.ohgnarly.gnarlyapi.repository.impl;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.ohgnarly.gnarlyapi.consumer.UserConsumer;
 import com.ohgnarly.gnarlyapi.exception.GnarlyException;
 import com.ohgnarly.gnarlyapi.model.User;
 import com.ohgnarly.gnarlyapi.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.mongodb.client.model.Filters.eq;
 import static java.lang.String.format;
 
 @Repository
+@RequiredArgsConstructor
 public class MongoDbUserRepository implements UserRepository {
-    private MongoCollection<User> userCollection;
-    private MongoCollection<User> chatUserCollection;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private UserConsumer userConsumer;
-
-    public MongoDbUserRepository(MongoCollection<User> userCollection, MongoCollection<User> chatUserCollection,
-                                 BCryptPasswordEncoder bCryptPasswordEncoder, UserConsumer userConsumer) {
-        this.userCollection = userCollection;
-        this.chatUserCollection = chatUserCollection;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.userConsumer = userConsumer;
-    }
+    private final MongoCollection<User> userCollection;
+    private final MongoCollection<User> chatUserCollection;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public User addUser(User user) throws GnarlyException {
@@ -46,9 +40,20 @@ public class MongoDbUserRepository implements UserRepository {
     @Override
     public List<User> getUsers() throws GnarlyException {
         try {
-            userConsumer.clear();
-            userCollection.find().forEach(userConsumer);
-            return userConsumer.getUsers();
+            List<User> users = new ArrayList<>();
+            userCollection.find().forEach((Consumer<User>) users::add);
+            return users;
+        } catch (MongoException ex) {
+            throw new GnarlyException(ex);
+        }
+    }
+
+    @Override
+    public List<User> getChatUsers() throws GnarlyException {
+        try {
+            List<User> chatUsers = new ArrayList<>();
+            chatUserCollection.find().forEach((Consumer<User>) chatUsers::add);
+            return chatUsers;
         } catch (MongoException ex) {
             throw new GnarlyException(ex);
         }
