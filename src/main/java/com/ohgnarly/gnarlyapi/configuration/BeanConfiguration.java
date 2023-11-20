@@ -11,6 +11,7 @@ import com.mongodb.client.MongoDatabase;
 import com.ohgnarly.gnarlyapi.model.Category;
 import com.ohgnarly.gnarlyapi.model.Message;
 import com.ohgnarly.gnarlyapi.model.User;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.springframework.context.annotation.Bean;
@@ -43,12 +44,20 @@ public class BeanConfiguration {
     }
 
     @Bean
-    public MongoClientSettings mongoClientSettings(ApplicationProperties applicationProperties) {
+    public Dotenv dotenv() {
+        return Dotenv
+                .configure()
+                .ignoreIfMissing()
+                .ignoreIfMalformed()
+                .load();
+    }
+    @Bean
+    public MongoClientSettings mongoClientSettings(ApplicationProperties applicationProperties, Dotenv dotenv) {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
                 fromProviders(PojoCodecProvider.builder().automatic(true).register(User.class).build()));
 
         ConnectionString connectionString = new ConnectionString(
-                "mongodb+srv://dbuser:OFADHEr0Kyx37VK1@cluster0.hds1u.mongodb.net/?retryWrites=true&w=majority"
+                dotenv.get("MONGO_DB_CONNECTION_STRING", "")
         );
 
         return MongoClientSettings
